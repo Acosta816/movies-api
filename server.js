@@ -7,7 +7,8 @@ const cors = require('cors');
 const app = express();
 const allMovies = require('./database/movies-database');
 
-app.use(morgan('dev'));
+const morganSetting = process.env.NODE_ENV === 'production' ? 'tiny' : 'dev';
+app.use(morgan(morganSetting));
 app.use(helmet());
 app.use(cors());
 
@@ -60,11 +61,24 @@ app.get('/movies',(req,res)=>{
   // else if(!Object.keys(req.query).length){
   //   return res.status(200).json(allMovies);
   // }
+})
 
+ //======================================================error handler
+app.use((error, req, res, next)=>{
+  let response;
+  if(process.env.NODE_ENV === 'production'){
+    response = {error: {message: 'server error, whoops'}}
+  }
+  else { 
+    response = { error } 
+  }
+  //=====================================================error handler
+  
+  res.status(500).json(response);
 })
 
 
-const PORT = 8000
+const PORT = process.env.PORT || 8000;
 app.listen(PORT, ()=>{
   console.log(`Server is listening to PORT ${PORT}`);
 });
